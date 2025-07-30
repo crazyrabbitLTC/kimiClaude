@@ -623,6 +623,7 @@ PROXY_EOF
         
         export GROQ_API_KEY="$API_KEY"
         export KIMI_PROXY_PORT="$PROXY_PORT"
+        export KIMI_WORKING_DIR="$(pwd)"
         
         # Check which Python to use
         if command -v python3 &> /dev/null; then
