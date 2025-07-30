@@ -636,15 +636,24 @@ PROXY_EOF
             return 1
         fi
         
-        # Use stateful proxy that handles complete tool execution cycles
+        # Use optimized streaming proxy for best Claude Code experience
+        OPTIMIZED_PROXY="$CONFIG_DIR/optimized_streaming_proxy.py"
         STATEFUL_PROXY="$CONFIG_DIR/stateful_proxy.py"
-        if [ -f "$STATEFUL_PROXY" ]; then
+        
+        if [ -f "$OPTIMIZED_PROXY" ]; then
+            echo -e "${GREEN}✓ Using optimized streaming proxy${NC}"
+            $PYTHON_CMD "$OPTIMIZED_PROXY" &
+            PROXY_PID=$!
+        elif [ -f "$STATEFUL_PROXY" ]; then
+            echo -e "${YELLOW}• Using stateful proxy (fallback)${NC}"
             $PYTHON_CMD "$STATEFUL_PROXY" &
             PROXY_PID=$!
         elif [ -f "$CONFIG_DIR/complete_proxy.py" ]; then
+            echo -e "${YELLOW}• Using complete proxy (fallback)${NC}"
             $PYTHON_CMD "$CONFIG_DIR/complete_proxy.py" &
             PROXY_PID=$!
         else
+            echo -e "${YELLOW}• Using basic proxy (fallback)${NC}"
             $PYTHON_CMD "$PROXY_SCRIPT" &
             PROXY_PID=$!
         fi
