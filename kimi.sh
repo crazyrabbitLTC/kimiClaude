@@ -635,13 +635,13 @@ PROXY_EOF
             return 1
         fi
         
-        # Use debug proxy to troubleshoot tool calling
-        DEBUG_PROXY="$CONFIG_DIR/debug_proxy.py"
-        if [ -f "$DEBUG_PROXY" ]; then
-            $PYTHON_CMD "$DEBUG_PROXY" &
+        # Use complete proxy that handles tool results properly
+        COMPLETE_PROXY="$CONFIG_DIR/complete_proxy.py"
+        if [ -f "$COMPLETE_PROXY" ]; then
+            $PYTHON_CMD "$COMPLETE_PROXY" &
             PROXY_PID=$!
-        elif [ -f "$CONFIG_DIR/working_proxy.py" ]; then
-            $PYTHON_CMD "$CONFIG_DIR/working_proxy.py" &
+        elif [ -f "$CONFIG_DIR/debug_proxy.py" ]; then
+            $PYTHON_CMD "$CONFIG_DIR/debug_proxy.py" &
             PROXY_PID=$!
         else
             $PYTHON_CMD "$PROXY_SCRIPT" &
