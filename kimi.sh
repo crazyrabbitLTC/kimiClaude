@@ -635,10 +635,13 @@ PROXY_EOF
             return 1
         fi
         
-        # Use simple working proxy instead
-        SIMPLE_PROXY="$CONFIG_DIR/simple_proxy.py"
-        if [ -f "$SIMPLE_PROXY" ]; then
-            $PYTHON_CMD "$SIMPLE_PROXY" &
+        # Use debug proxy to troubleshoot tool calling
+        DEBUG_PROXY="$CONFIG_DIR/debug_proxy.py"
+        if [ -f "$DEBUG_PROXY" ]; then
+            $PYTHON_CMD "$DEBUG_PROXY" &
+            PROXY_PID=$!
+        elif [ -f "$CONFIG_DIR/working_proxy.py" ]; then
+            $PYTHON_CMD "$CONFIG_DIR/working_proxy.py" &
             PROXY_PID=$!
         else
             $PYTHON_CMD "$PROXY_SCRIPT" &
