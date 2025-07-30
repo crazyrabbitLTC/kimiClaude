@@ -635,13 +635,13 @@ PROXY_EOF
             return 1
         fi
         
-        # Use complete proxy that handles tool results properly
-        COMPLETE_PROXY="$CONFIG_DIR/complete_proxy.py"
-        if [ -f "$COMPLETE_PROXY" ]; then
-            $PYTHON_CMD "$COMPLETE_PROXY" &
+        # Use stateful proxy that handles complete tool execution cycles
+        STATEFUL_PROXY="$CONFIG_DIR/stateful_proxy.py"
+        if [ -f "$STATEFUL_PROXY" ]; then
+            $PYTHON_CMD "$STATEFUL_PROXY" &
             PROXY_PID=$!
-        elif [ -f "$CONFIG_DIR/debug_proxy.py" ]; then
-            $PYTHON_CMD "$CONFIG_DIR/debug_proxy.py" &
+        elif [ -f "$CONFIG_DIR/complete_proxy.py" ]; then
+            $PYTHON_CMD "$CONFIG_DIR/complete_proxy.py" &
             PROXY_PID=$!
         else
             $PYTHON_CMD "$PROXY_SCRIPT" &
