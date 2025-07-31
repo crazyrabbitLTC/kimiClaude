@@ -1,0 +1,68 @@
+# API Keys and Secrets
+*api_key*
+*_key
+*.env
+.env*
+config/
+*.pem
+*.key
+
+# Debug and Log Files
+/tmp/kimi_*
+*debug.log
+*.log
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary Files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Configuration directories that may contain sensitive data
+~/.config/kimi-claude/groq_api_key
+~/.config/kimi-claude/moonshot_api_key
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Local test files
+test_*
+*_test.*
+examples/
+samples/
+
+# Node modules (if any JS tooling is added)
+node_modules/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Build outputs
+dist/
+build/

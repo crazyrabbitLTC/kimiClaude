@@ -13,6 +13,7 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m' # No Color
 
 # Script configuration
@@ -636,12 +637,22 @@ PROXY_EOF
             return 1
         fi
         
-        # Use optimized streaming proxy for best Claude Code experience
+        # Use Anthropic-compatible proxy for best Claude Code experience
+        ANTHROPIC_PROXY="$CONFIG_DIR/anthropic_compatible_proxy.py"
+        SIMPLE_PROXY="$CONFIG_DIR/simple_streaming_proxy.py"
         OPTIMIZED_PROXY="$CONFIG_DIR/optimized_streaming_proxy.py"
         STATEFUL_PROXY="$CONFIG_DIR/stateful_proxy.py"
         
-        if [ -f "$OPTIMIZED_PROXY" ]; then
-            echo -e "${GREEN}✓ Using optimized streaming proxy${NC}"
+        if [ -f "$ANTHROPIC_PROXY" ]; then
+            echo -e "${GREEN}✓ Using Anthropic-compatible Kimi proxy${NC}"
+            $PYTHON_CMD "$ANTHROPIC_PROXY" &
+            PROXY_PID=$!
+        elif [ -f "$SIMPLE_PROXY" ]; then
+            echo -e "${YELLOW}• Using Kimi-only streaming proxy (fallback)${NC}"
+            $PYTHON_CMD "$SIMPLE_PROXY" &
+            PROXY_PID=$!
+        elif [ -f "$OPTIMIZED_PROXY" ]; then
+            echo -e "${YELLOW}• Using optimized streaming proxy (fallback)${NC}"
             $PYTHON_CMD "$OPTIMIZED_PROXY" &
             PROXY_PID=$!
         elif [ -f "$STATEFUL_PROXY" ]; then
@@ -709,14 +720,21 @@ PROXY_EOF
     
     echo -e "\n${CYAN}Launching Claude Code...${NC}\n"
     
-    # Export environment variables only for this session
-    export ANTHROPIC_AUTH_TOKEN="$API_KEY"
-    export ANTHROPIC_BASE_URL="$API_URL"
+    # Set clear internal variables for better understanding
+    # These reflect what we're actually connecting to (Groq API via Kimi proxy)
+    GROQ_API_KEY="$API_KEY"
+    KIMI_PROXY_URL="$API_URL"
+    
+    # Export Claude Code compatible environment variables
+    # Note: Claude Code expects these specific Anthropic variable names
+    # but we're actually connecting to Groq API via our Kimi proxy
+    export ANTHROPIC_AUTH_TOKEN="$GROQ_API_KEY"  # Actually a Groq API key
+    export ANTHROPIC_BASE_URL="$KIMI_PROXY_URL"  # Actually our Kimi proxy URL
     
     # Debug: Show environment variables and test connectivity
-    echo -e "${CYAN}Debug: Environment variables:${NC}"
-    echo -e "  ANTHROPIC_AUTH_TOKEN: ${ANTHROPIC_AUTH_TOKEN:0:10}..."
-    echo -e "  ANTHROPIC_BASE_URL: $ANTHROPIC_BASE_URL"
+    echo -e "${CYAN}Debug: Environment variables (Claude Code compatibility):${NC}"
+    echo -e "  ANTHROPIC_AUTH_TOKEN: ${ANTHROPIC_AUTH_TOKEN:0:10}... ${DIM}(actually Groq API key)${NC}"
+    echo -e "  ANTHROPIC_BASE_URL: $ANTHROPIC_BASE_URL ${DIM}(actually Kimi proxy URL)${NC}"
     
     # Test proxy connectivity before launching Claude Code
     if [ "$NEEDS_PROXY" = true ]; then
@@ -728,21 +746,24 @@ PROXY_EOF
         fi
     fi
     
-    # Launch Claude Code with arguments
+    # Launch Claude Code with arguments - SECURITY: Avoid eval injection
     if [ -n "$claude_args" ]; then
         # Check if this is a --print command that will exit quickly
         if [[ "$claude_args" == *"--print"* ]] || [[ "$claude_args" == *"-p"* ]]; then
             # For --print mode, don't set trap to avoid premature proxy shutdown
             trap - EXIT
-            eval "$CLAUDE_CMD $claude_args"
+            # SECURITY: Use direct execution instead of eval to prevent injection
+            $CLAUDE_CMD $claude_args
             # Give Claude Code time to make the API call before killing proxy
             sleep 2
             cleanup_proxy
         else
-            eval "$CLAUDE_CMD $claude_args"
+            # SECURITY: Use direct execution instead of eval
+            $CLAUDE_CMD $claude_args
         fi
     else
-        eval "$CLAUDE_CMD"
+        # SECURITY: Use direct execution instead of eval
+        $CLAUDE_CMD
     fi
     
     # Cleanup proxy if it was started (only for non --print commands)
